@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Superadmin Dashboard</title>
+</head>
+<body>
+    <h1>Welcome Superadmin</h1> 
+    <h2>Add New Admin User</h2> 
+    <form method="post"> 
+        {% csrf_token %}
+        {{ form.as_p }} 
+        <button type="submit">Add Admin User</button> 
+    </form>
+    <h2>Existing Admin Users</h2>
+    <ul>
+        {% for user in admin_users %}
+            <li>{{ user.name }} ({{ user.role }}) - {{ user.email }}</li>
+        {% empty %}
+            <li>No admin users added yet.</li>
+        {% endfor %}
+    </ul>
+
+    <a href="{% url 'logout' %}">Logout</a>
+
+</body>
+</html>

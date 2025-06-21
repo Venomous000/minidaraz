@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.utils import timezone
 from django.conf import settings
+from django.contrib.auth.hashers import make_password
 
 
 # Create your models here.
@@ -39,17 +40,42 @@ class User(AbstractBaseUser, PermissionsMixin):
         return self.email
 
 
+
+
 class Admin(models.Model):
     email = models.EmailField(unique=True)
     name = models.CharField(max_length=100)
     password = models.CharField(max_length=255)
-    created_at = models.DateTimeField(auto_now_add=True)
+    role = models.CharField(max_length=50, default='superadmin')  # Optional
+
+    def save(self, *args, **kwargs):
+        if not self.pk or not Admin.objects.filter(pk=self.pk, password=self.password).exists():
+            self.password = make_password(self.password)
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.email
 
-from django.db import models
-from django.conf import settings
+
+class AdminUser(models.Model):
+    ROLE_CHOICES = (
+        ('manager', 'Manager'),
+        ('staff', 'Staff'),
+    )
+    superadmin = models.ForeignKey(Admin, on_delete=models.CASCADE)
+    name = models.CharField(max_length=100)
+    email = models.EmailField(unique=True)
+    password = models.CharField(max_length=255)
+    role = models.CharField(max_length=50, choices=ROLE_CHOICES)
+
+    def save(self, *args, **kwargs):
+        if not self.pk or not AdminUser.objects.filter(pk=self.pk, password=self.password).exists():
+            self.password = make_password(self.password)
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.name} ({self.role})"
+
 
 
 class Address(models.Model):
